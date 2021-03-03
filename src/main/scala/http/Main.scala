@@ -2,39 +2,51 @@ package http
 
 import java.nio.file.Paths
 
-import cats._
+import cats.SemigroupK
+import cats.data.Kleisli
+import cats.instances.all._
 import cats.implicits._
-import loader.load
-import org.http4s.server.Router
+import cats.data.Kleisli._
+import cats.syntax.SemigroupKSyntax
+import org.http4s._
+import org.http4s.dsl._
+import org.http4s.syntax.kleisli._
 import org.http4s.server.blaze.BlazeServerBuilder
-import org.http4s.implicits._
 import zio._
-import zio.duration._
-import zio.console._
 import zio.interop.catz._
 import zio.interop.catz.implicits._
-import org.http4s.dsl.Http4sDsl
 
-import scala.concurrent.duration._
-
-object Main extends App {
+object Main extends App with SemigroupKSyntax {
 
   private val dsl = Http4sDsl[Task]
   import dsl._
+
+  implicitly[SemigroupK[HttpRoutes]]
+
+  def combine(first: Routes, second: Routes) =
+    first.combineK(second)
 
   def serve: URIO[zio.ZEnv, ExitCode] = {
     val configPath = Paths
       .get(getClass.getClassLoader.getResource("botschaft.json").toURI)
       .getParent
-    val slack = for {
+    val apis1 = for {
       cfg <- config.loadConfig(configPath)
       slack <- cfg.providers.slack.map(s => http.slackApi(s)).toRight(new Exception("no slack!"))
-    } yield slack
+      discord <- cfg.providers.discord.map(d => http.discordApi(d)).toRight(new Exception("no discord!"))
+    } yield Seq(slack, discord)
+
+    val apis: List[HttpRoutes[Task]] = ???
+
+    val app = apis
+      .fold(HttpRoutes.empty[Task]){
+        case (app: HttpRoutes[Task], routes: HttpRoutes[Task]) => app.combineK(routes)
+      }.orNotFound
 
     ZIO.runtime[ZEnv].flatMap { implicit runtime =>
       BlazeServerBuilder[Task](scala.concurrent.ExecutionContext.global)
         .bindHttp(8000, "0.0.0.0")
-        .withHttpApp(slack.getOrElse(throw new Exception("ouch")).orNotFound)
+        .withHttpApp(HttpRoutes.empty[Task].orNotFound)
         .serve
         .compile
         .drain

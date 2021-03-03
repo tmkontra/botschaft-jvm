@@ -14,13 +14,13 @@ lazy val root = (project in file("."))
 
 val circeVersion = "0.12.3"
 
-val Http4sVersion = "0.21.4"
+val Http4sVersion = "0.21.20"
 
 lazy val dependencies = Seq(
   scalaTest % Test,
   "dev.zio" %% "zio" % "1.0.4-2",
   "org.typelevel" %% "cats-core" % "2.1.1",
-  "dev.zio" %% "zio-interop-cats" % "2.0.0.0-RC11",
+  "dev.zio" %% "zio-interop-cats" % "2.3.1.0",
   "org.http4s" %% "http4s-circe" % Http4sVersion,
   "org.http4s" %% "http4s-dsl" % Http4sVersion,
   "org.http4s" %% "http4s-blaze-server" % Http4sVersion
