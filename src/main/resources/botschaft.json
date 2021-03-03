@@ -1,0 +1,22 @@
+{
+  "providers": {
+    "slack": {
+      "channels": {
+        "alerts": "https://localhost/webhook/1234"
+      }
+    },
+    "twilio": {
+      "account_sid": "twilio-account-sid",
+      "auth_token": "twilio-auth-token",
+      "from_phone_number": "+15553156902"
+    }
+  },
+  "topics": [
+    {
+      "name": "t1",
+      "destinations": [
+        "slack.alerts"
+      ]
+    }
+  ]
+}
