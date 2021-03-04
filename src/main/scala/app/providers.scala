@@ -1,4 +1,6 @@
-package object providers {
+package app
+
+object providers {
   sealed trait Provider
   object Provider {
     case object Slack extends Provider

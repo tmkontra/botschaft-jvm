@@ -4,7 +4,7 @@ import java.nio.file.{Path, Paths}
 
 import cats.data.NonEmptyList
 import config.BotschaftConfig._
-import http.Main.getClass
+import app.Main.getClass
 
 import scala.io.Source
 import scala.util.{Try, Using}
