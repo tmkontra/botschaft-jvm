@@ -1,18 +1,18 @@
 package app
 
-import zio.interop.catz._
-import config.BotschaftConfig.{DiscordConfig, SlackConfig, TwilioConfig}
+import app.services._
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
-import services.{DiscordMessage, HasSlackApi, SlackApi, SlackMessage, TwilioMessage}
-import zio.{Task, URIO, ZLayer}
+import zio.Task
+import zio.interop.catz._
+import zio.interop.catz.implicits._
 
-object http extends Http4sDsl[Task] {
+object routes extends Http4sDsl[Task] {
 
   object message extends QueryParamDecoderMatcher[String]("message")
   object channel extends QueryParamDecoderMatcher[String]("channel")
 
-  def slackApi(slack: SlackApi.Service): HttpRoutes[Task] = {
+  def slackApi(slack: Slack.Service): HttpRoutes[Task] = {
     HttpRoutes
       .of[Task] {
         case GET -> Root / "slack" :? message(message) +& channel(channel) =>
@@ -27,8 +27,7 @@ object http extends Http4sDsl[Task] {
       }
   }
 
-  def discordApi(discordConfig: DiscordConfig): HttpRoutes[Task] = {
-    val discord = new services.DiscordApi(discordConfig)
+  def discordApi(discord: Discord.Service): HttpRoutes[Task] = {
     HttpRoutes
       .of[Task] {
         case GET -> Root / "discord" :? message(message) +& channel(channel) =>
@@ -45,8 +44,7 @@ object http extends Http4sDsl[Task] {
 
   object to extends QueryParamDecoderMatcher[String]("to")
 
-  def twilioApi(twilioConfig: TwilioConfig): HttpRoutes[Task] = {
-    val twilio = new services.TwilioApi(twilioConfig)
+  def twilioApi(twilio: Twilio.Service): HttpRoutes[Task] = {
     HttpRoutes
       .of[Task] {
         case GET -> Root / "twilio" :? message(message) +& to(to) =>
